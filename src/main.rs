@@ -6,12 +6,24 @@ use serde_json::json;
 // Query to use in request
 const QUERY: &str = "
 {
-  User(name: \"Moskas\") {
+  User(name: \"$name\") {
       name
         statistics {
         manga {
+          count
           chaptersRead
           volumesRead
+          genres {
+            genre
+          }
+        }
+        anime {
+          count
+          minutesWatched
+          episodesWatched
+          genres {
+            genre
+          }
         }
       }
     }
@@ -38,6 +50,12 @@ struct User {
 #[derive(Debug, Serialize, Deserialize)]
 struct Statistics {
   manga: Manga,
+  anime: Anime,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Genre {
+  genre: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,13 +64,26 @@ struct Manga {
   chapters_read: u32,
   #[serde(rename = "volumesRead")]
   volumes_read: u32,
+  count: u32,
+  genres: Vec<Genre>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Anime {
+  #[serde(rename = "minutesWatched")]
+  minutes_watched: u32,
+  #[serde(rename = "episodesWatched")]
+  episodes_watched: u32,
+  count: u32,
+  genres: Vec<Genre>,
 }
 
 #[tokio::main]
 async fn main() {
   let client = Client::new();
+  let name = "Moskas";
   // Define query and variables
-  let json = json!({"query": QUERY, "user":{ "name": "Moskas"}});
+  let json = json!({"query": QUERY.replace("$name", name)});
   // Make HTTP post request
   let resp = client
     .post("https://graphql.anilist.co/")
@@ -91,9 +122,140 @@ async fn main() {
     }
   }
 
-  //println!("{:#?}", response_data.data.user);
-    println!("{}@anilist.co", response_data.data.user.name.blue());
-    println!("{}","Manga stats".to_string().bold());
-    println!("Chapters read: {}", response_data.data.user.statistics.manga.chapters_read.to_string().yellow());
-    println!("Volumes read: {}", response_data.data.user.statistics.manga.volumes_read.to_string().yellow());
+  //println!("{:#?}", response_data.data);
+  let user = format!("{}@anilist.co", response_data.data.user.name.blue());
+  let manga_stats = format!(
+    "{}: {}",
+    "Manga stats".to_string().bold(),
+    response_data.data.user.statistics.manga.count
+  );
+  let chapters_read = format!(
+    "- Chapters read: {}",
+    response_data
+      .data
+      .user
+      .statistics
+      .manga
+      .chapters_read
+      .to_string()
+      .yellow()
+  );
+  let volumes_read = format!(
+    "- Volumes read: {}",
+    response_data
+      .data
+      .user
+      .statistics
+      .manga
+      .volumes_read
+      .to_string()
+      .yellow()
+  );
+  let anime_stats = format!(
+    "{}: {}",
+    "Anime stats".to_string().bold(),
+    response_data.data.user.statistics.anime.count
+  );
+  let minutes_watched = format!(
+    "- Minutes watched: {}",
+    response_data
+      .data
+      .user
+      .statistics
+      .anime
+      .minutes_watched
+      .to_string()
+      .yellow()
+  );
+  let episodes_watched = format!(
+    "- Episodes watched: {}",
+    response_data
+      .data
+      .user
+      .statistics
+      .anime
+      .episodes_watched
+      .to_string()
+      .yellow()
+  );
+  let manga_genres = format!(
+    "- Top 5 genres: {}",
+    response_data
+      .data
+      .user
+      .statistics
+      .manga
+      .genres
+      .iter()
+      .map(|x| x.genre.to_string())
+      .collect::<Vec<String>>()[0..5]
+      .join(", ")
+      .yellow()
+  );
+  let anime_genres = format!(
+    "- Top 5 genres: {}",
+    response_data
+      .data
+      .user
+      .statistics
+      .anime
+      .genres
+      .iter()
+      .map(|x| x.genre.to_string())
+      .collect::<Vec<String>>()[0..5]
+      .join(", ")
+      .yellow()
+  );
+  let right = vec![
+    "",
+    &user,
+    "",
+    &manga_stats,
+    &chapters_read,
+    &volumes_read,
+    &manga_genres,
+    "",
+    &anime_stats,
+    &episodes_watched,
+    &minutes_watched,
+    &anime_genres,
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ];
+  let ascii = "⠀⠀⠠⢽⣝⣗⡽⡽⣝⢮⣪⣫⠀⠀⡠⡳⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠠⠑⢗⣗⡿⡽⣝⣗⡧⣣⠨⠐⠀⢀⠠⡂⡢⠨⡈⡂⠅⣂⣐⢄⠀⠂⠀⠁⢈⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⡀⣄⣢⢯⡫⡝⡬⣷⣟⡆⠅⢅⢆⢇⢇⢇⠪⡨⡰⢘⠨⢀⠄⠅⡑⠔⡄⡐⠀⠀⠠⠀⠀⠀⠀⠀⠀⠀
+⡲⣕⢧⢳⣝⡷⣽⢞⣽⢾⠙⢌⢜⢎⢎⢎⢎⢢⢕⢕⠌⢆⠪⡐⢌⠢⠂⠡⠘⡔⡀⠀⠈⠄⠀⠀⠂⠀⠨⡂
+⡯⡪⡮⡗⣗⢽⡹⣹⣪⡇⡪⡎⡧⡫⡎⡇⡕⣕⢕⢕⠕⡅⡣⢪⢘⢌⢪⢐⡑⢌⠆⡡⠀⠌⠠⠁⠀⠁⡜⠀
+⡏⡮⡮⡯⡪⡣⡋⡮⣞⠬⡮⣳⢹⢜⢎⢎⢞⢜⢼⢸⢪⢪⢪⢪⢢⢱⢨⢢⠪⡢⡣⡪⡠⠁⠌⡠⠀⣕⠍⠀
+⣿⣺⢽⢽⡻⣞⣮⡯⡏⡯⡯⣪⢇⢧⠣⡣⡳⣙⢎⢗⡕⡧⣫⢪⢪⡪⡪⣒⢭⢪⢪⢪⠢⠠⢡⡠⡞⡕⠀⠀
+⠃⢟⡽⣗⡯⣟⣗⠏⢕⢹⢝⣾⢱⢕⢇⠗⡳⢕⢇⢧⠳⡹⡸⡜⡎⣞⢼⢸⢜⢜⡜⡵⡹⡈⢮⡫⠊⠀⠀⠀
+⠑⠐⠙⠵⡟⡿⡢⠡⡁⡂⡢⠉⡞⡜⠨⠘⠨⡊⠘⠢⠊⠪⢣⢣⢣⢳⢕⢧⡫⢮⡪⣳⢱⢡⡳⡄⠀⠀⠀⠀
+⠀⠠⠀⠀⠢⢨⠨⡂⣖⡐⡀⠡⢸⠱⡡⠈⠄⠀⡀⠀⢀⠀⢀⢈⢬⠪⣎⢎⢎⢧⡫⡮⡣⡢⡯⡺⣢⡀⠀⠀
+⠈⠀⠄⠀⠥⡑⢌⠐⡮⣳⢕⡄⢕⠅⠀⠐⠀⠁⠀⠀⠀⡀⠄⢐⢁⠳⠈⡎⣪⢧⡫⣞⢜⣎⢧⡣⡓⠁⠀⠀
+⠄⠐⢀⠕⡑⢌⢐⠰⣝⢮⢇⡇⢕⠅⠠⠀⠀⠂⡀⢀⠁⠀⠀⡀⠠⠀⣐⢜⣕⢗⡽⣸⣺⡪⣗⢯⠢⠀⠀⠀
+⠡⠈⠄⠂⡐⠰⠈⡼⡵⡝⡧⡇⠨⡂⡂⠀⠐⠀⠀⠀⠀⠂⠀⠀⡀⡱⡕⡷⡕⡏⡊⡪⢊⠊⠊⠁⠀⠀⠀⠀
+⢈⠀⡂⠅⠀⡁⡔⣯⢺⢝⣎⢗⠡⢑⢀⠢⢀⠂⠈⠀⠐⠀⣀⡡⣢⡫⡎⣇⣟⡎⢌⠂⢑⠐⠀⠄⠁⠀⠀⠀
+⠂⡂⡠⢠⣲⣞⢧⣣⢇⡟⣎⢂⢂⢂⠂⡂⠂⠆⢖⢮⢪⡳⡕⣝⡼⣮⡺⣜⢮⣗⢔⠡⠡⢂⢁⠈⢀⠐⠀⠀
+⡀⡂⢊⢲⣳⢯⣟⡮⡯⣊⢐⠜⡐⢅⠂⠄⢅⢑⢱⢕⣇⣃⣯⣳⢽⣳⢝⢮⡳⡯⠂⠑⡑⢅⡂⠑⠠⠂⠄⠈
+⠂⠀⡐⡽⣞⣟⣾⢽⡽⡒⣕⡕⠾⡎⡆⡱⠰⠁⠀⡧⣗⣟⡮⣯⣻⡺⡀⠑⠽⡈⠀⠀⠌⠰⠘⠌⠀⠄⠑⢀
+⢀⠰⣜⣯⣟⡾⣽⢋⢪⢜⣆⣯⣞⢌⠪⡈⠀⠠⠀⢳⢯⡷⣽⡺⡺⠈⠄⠀⠀⠁⠂⠀⠀⠀⠁⠁⠂⠄⠀⠀
+⡀⣮⣻⣞⡾⣝⡦⣺⣞⣷⡳⣗⢽⣆⠂⠀⠄⠠⠐⠸⣹⡽⡵⣗⠠⠈⡀⠀⠠⠀⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⢜⣗⣗⡯⠋⢀⢟⡗⣗⣵⠟⠍⠙⠘⡢⠁⢀⠀⠀⢀⢳⢟⣯⣧⡀⠂⢀⠐⠀⠀⠄⠠⢁⠢⠐⠀⠀⠀⠀⠀";
+
+  for (ascii_line, text_line) in ascii.lines().zip(right.iter()) {
+    println!("{} {}", ascii_line, text_line);
+  }
 }
