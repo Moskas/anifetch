@@ -3,6 +3,8 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+mod cli;
+
 // Query to use in request
 const QUERY: &str = "
 {
@@ -16,6 +18,10 @@ const QUERY: &str = "
           genres {
             genre
           }
+          statuses {
+            status
+            count
+          }
         }
         anime {
           count
@@ -23,6 +29,10 @@ const QUERY: &str = "
           episodesWatched
           genres {
             genre
+          }
+          statuses {
+            status
+            count
           }
         }
       }
@@ -59,12 +69,19 @@ struct Genre {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct Statuses {
+  status: String,
+  count: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct Manga {
   #[serde(rename = "chaptersRead")]
   chapters_read: u32,
   #[serde(rename = "volumesRead")]
   volumes_read: u32,
   count: u32,
+  statuses: Vec<Statuses>,
   genres: Vec<Genre>,
 }
 
@@ -75,13 +92,14 @@ struct Anime {
   #[serde(rename = "episodesWatched")]
   episodes_watched: u32,
   count: u32,
+  statuses: Vec<Statuses>,
   genres: Vec<Genre>,
 }
 
 #[tokio::main]
 async fn main() {
   let client = Client::new();
-  let name = "Moskas";
+  let name = &cli::get_name();
   // Define query and variables
   let json = json!({"query": QUERY.replace("$name", name)});
   // Make HTTP post request
@@ -127,7 +145,7 @@ async fn main() {
   let manga_stats = format!(
     "{}: {}",
     "Manga stats".to_string().bold(),
-    response_data.data.user.statistics.manga.count
+    response_data.data.user.statistics.manga.count.to_string()[..].magenta()
   );
   let chapters_read = format!(
     "- Chapters read: {}",
@@ -154,7 +172,7 @@ async fn main() {
   let anime_stats = format!(
     "{}: {}",
     "Anime stats".to_string().bold(),
-    response_data.data.user.statistics.anime.count
+    response_data.data.user.statistics.anime.count.to_string()[..].magenta()
   );
   let minutes_watched = format!(
     "- Minutes watched: {}",
@@ -178,6 +196,19 @@ async fn main() {
       .to_string()
       .yellow()
   );
+  let manga_statuses = format!(
+    "- {}",
+    &response_data
+      .data
+      .user
+      .statistics
+      .manga
+      .statuses
+      .iter()
+      .map(|s| format!("{}: {}", s.status, s.count))
+      .collect::<Vec<String>>()
+      .join(" ")[..]
+  );
   let manga_genres = format!(
     "- Top 5 genres: {}",
     response_data
@@ -191,6 +222,19 @@ async fn main() {
       .collect::<Vec<String>>()[0..5]
       .join(", ")
       .yellow()
+  );
+  let anime_statuses = format!(
+    "- {}",
+    &response_data
+      .data
+      .user
+      .statistics
+      .anime
+      .statuses
+      .iter()
+      .map(|s| format!("{}: {}", s.status, s.count))
+      .collect::<Vec<String>>()
+      .join(" ")[..]
   );
   let anime_genres = format!(
     "- Top 5 genres: {}",
@@ -214,12 +258,13 @@ async fn main() {
     &chapters_read,
     &volumes_read,
     &manga_genres,
+    &manga_statuses,
     "",
     &anime_stats,
     &episodes_watched,
     &minutes_watched,
     &anime_genres,
-    "",
+    &anime_statuses,
     "",
     "",
     "",
