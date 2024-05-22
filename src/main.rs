@@ -196,20 +196,8 @@ async fn main() {
       .to_string()
       .yellow()
   );
-  let manga_statuses = format!(
-    "- {}",
-    &response_data
-      .data
-      .user
-      .statistics
-      .manga
-      .statuses
-      .iter()
-      .map(|s| format!("{}: {}", s.status, s.count))
-      .collect::<Vec<String>>()
-      .join(" ")[..]
-  );
-  let manga_genres = format!(
+  let manga_statuses = format_statuses(response_data.data.user.statistics.manga.statuses);
+  let _manga_genres = format!(
     "- Top 5 genres: {}",
     response_data
       .data
@@ -223,20 +211,8 @@ async fn main() {
       .join(", ")
       .yellow()
   );
-  let anime_statuses = format!(
-    "- {}",
-    &response_data
-      .data
-      .user
-      .statistics
-      .anime
-      .statuses
-      .iter()
-      .map(|s| format!("{}: {}", s.status, s.count))
-      .collect::<Vec<String>>()
-      .join(" ")[..]
-  );
-  let anime_genres = format!(
+  let anime_statuses = format_statuses(response_data.data.user.statistics.anime.statuses);
+  let _anime_genres = format!(
     "- Top 5 genres: {}",
     response_data
       .data
@@ -251,33 +227,17 @@ async fn main() {
       .yellow()
   );
   let right = vec![
-    "",
     &user,
-    "",
     &manga_stats,
     &chapters_read,
     &volumes_read,
-    &manga_genres,
+    //&manga_genres,
     &manga_statuses,
-    "",
     &anime_stats,
     &episodes_watched,
     &minutes_watched,
-    &anime_genres,
+    //&anime_genres,
     &anime_statuses,
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
   ];
   let ascii = "⠀⠀⠠⢽⣝⣗⡽⡽⣝⢮⣪⣫⠀⠀⡠⡳⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠠⠑⢗⣗⡿⡽⣝⣗⡧⣣⠨⠐⠀⢀⠠⡂⡢⠨⡈⡂⠅⣂⣐⢄⠀⠂⠀⠁⢈⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -298,9 +258,77 @@ async fn main() {
 ⠂⠀⡐⡽⣞⣟⣾⢽⡽⡒⣕⡕⠾⡎⡆⡱⠰⠁⠀⡧⣗⣟⡮⣯⣻⡺⡀⠑⠽⡈⠀⠀⠌⠰⠘⠌⠀⠄⠑⢀
 ⢀⠰⣜⣯⣟⡾⣽⢋⢪⢜⣆⣯⣞⢌⠪⡈⠀⠠⠀⢳⢯⡷⣽⡺⡺⠈⠄⠀⠀⠁⠂⠀⠀⠀⠁⠁⠂⠄⠀⠀
 ⡀⣮⣻⣞⡾⣝⡦⣺⣞⣷⡳⣗⢽⣆⠂⠀⠄⠠⠐⠸⣹⡽⡵⣗⠠⠈⡀⠀⠠⠀⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⢜⣗⣗⡯⠋⢀⢟⡗⣗⣵⠟⠍⠙⠘⡢⠁⢀⠀⠀⢀⢳⢟⣯⣧⡀⠂⢀⠐⠀⠀⠄⠠⢁⠢⠐⠀⠀⠀⠀⠀";
+⢜⣗⣗⡯⠋⢀⢟⡗⣗⣵⠟⠍⠙⠘⡢⠁⢀⠀⠀⢀⢳⢟⣯⣧⡀⠂⢀⠐⠀⠀⠄⠠⢁⠢⠐⠀⠀⠀⠀⠀
+";
 
-  for (ascii_line, text_line) in ascii.lines().zip(right.iter()) {
-    println!("{} {}", ascii_line, text_line);
+  if cli::use_ascii() {
+    let mut ascii_lines = ascii.lines();
+    let mut right_iter = right.iter();
+
+    // Print paired lines from both iterators
+    for (ascii_line, text_line) in ascii_lines.by_ref().zip(right_iter.by_ref()) {
+      println!("{} {}", ascii_line, text_line);
+    }
+
+    // Print remaining ascii lines if any
+    for ascii_line in ascii_lines {
+      println!("{}", ascii_line);
+    }
+  } else {
+    for line in right {
+      println!("{}", line);
+    }
   }
+  //format_statuses(response_data.data.user.statistics.manga.statuses);
+  //format_statuses(response_data.data.user.statistics.anime.statuses);
+}
+
+fn format_statuses(mut statuses: Vec<Statuses>) -> String {
+  statuses.sort_by(|a, b| a.status.cmp(&b.status));
+  let mut formatted_statuses = vec![];
+  for status in statuses {
+    match &status.status[..] {
+      "COMPLETED" => formatted_statuses.push(format!(
+        "{} {}",
+        titlecase(status.status),
+        status.count.to_string()[..].green()
+      )),
+      "PAUSED" => formatted_statuses.push(format!(
+        "{} {}",
+        titlecase(status.status),
+        status.count.to_string()[..].magenta()
+      )),
+      "CURRENT" => formatted_statuses.push(format!(
+        "{} {}",
+        titlecase(status.status),
+        status.count.to_string()[..].yellow()
+      )),
+      "PLANNING" => formatted_statuses.push(format!(
+        "{} {}",
+        titlecase(status.status),
+        status.count.to_string()[..].blue()
+      )),
+      "REPEATING" => formatted_statuses.push(format!(
+        "{} {}",
+        titlecase(status.status),
+        status.count.to_string()[..].purple()
+      )),
+      "DROPPED" => formatted_statuses.push(format!(
+        "{} {}",
+        titlecase(status.status),
+        status.count.to_string()[..].red()
+      )),
+      _ => formatted_statuses.push(titlecase(status.status).into()),
+    }
+  }
+  format!("- {}", formatted_statuses.join(", "))
+}
+
+fn titlecase(word: String) -> String {
+  let modified_word = format!(
+    "{}{}",
+    word[0..1].to_uppercase(),
+    word[1..].to_ascii_lowercase().to_string()
+  );
+  modified_word
 }
