@@ -122,8 +122,8 @@ async fn main() {
             Ok(data) => {
               response_data = data;
             }
-            Err(e) => {
-              eprintln!("Error deserializing the response: {:?}", e);
+            Err(_e) => {
+              println!("{}", "Specified user not found".red());
               return;
             }
           }
@@ -223,6 +223,7 @@ async fn main() {
       .join(", ")
       .yellow()
   );
+
   let stats = vec![
     &user,
     &manga_stats,
@@ -236,27 +237,9 @@ async fn main() {
     &anime_genres,
     &anime_statuses,
   ];
-  let ascii = "⠀⠀⠠⢽⣝⣗⡽⡽⣝⢮⣪⣫⠀⠀⡠⡳⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠠⠑⢗⣗⡿⡽⣝⣗⡧⣣⠨⠐⠀⢀⠠⡂⡢⠨⡈⡂⠅⣂⣐⢄⠀⠂⠀⠁⢈⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⡀⣄⣢⢯⡫⡝⡬⣷⣟⡆⠅⢅⢆⢇⢇⢇⠪⡨⡰⢘⠨⢀⠄⠅⡑⠔⡄⡐⠀⠀⠠⠀⠀⠀⠀⠀⠀⠀
-⡲⣕⢧⢳⣝⡷⣽⢞⣽⢾⠙⢌⢜⢎⢎⢎⢎⢢⢕⢕⠌⢆⠪⡐⢌⠢⠂⠡⠘⡔⡀⠀⠈⠄⠀⠀⠂⠀⠨⡂
-⡯⡪⡮⡗⣗⢽⡹⣹⣪⡇⡪⡎⡧⡫⡎⡇⡕⣕⢕⢕⠕⡅⡣⢪⢘⢌⢪⢐⡑⢌⠆⡡⠀⠌⠠⠁⠀⠁⡜⠀
-⡏⡮⡮⡯⡪⡣⡋⡮⣞⠬⡮⣳⢹⢜⢎⢎⢞⢜⢼⢸⢪⢪⢪⢪⢢⢱⢨⢢⠪⡢⡣⡪⡠⠁⠌⡠⠀⣕⠍⠀
-⣿⣺⢽⢽⡻⣞⣮⡯⡏⡯⡯⣪⢇⢧⠣⡣⡳⣙⢎⢗⡕⡧⣫⢪⢪⡪⡪⣒⢭⢪⢪⢪⠢⠠⢡⡠⡞⡕⠀⠀
-⠃⢟⡽⣗⡯⣟⣗⠏⢕⢹⢝⣾⢱⢕⢇⠗⡳⢕⢇⢧⠳⡹⡸⡜⡎⣞⢼⢸⢜⢜⡜⡵⡹⡈⢮⡫⠊⠀⠀⠀
-⠑⠐⠙⠵⡟⡿⡢⠡⡁⡂⡢⠉⡞⡜⠨⠘⠨⡊⠘⠢⠊⠪⢣⢣⢣⢳⢕⢧⡫⢮⡪⣳⢱⢡⡳⡄⠀⠀⠀⠀
-⠀⠠⠀⠀⠢⢨⠨⡂⣖⡐⡀⠡⢸⠱⡡⠈⠄⠀⡀⠀⢀⠀⢀⢈⢬⠪⣎⢎⢎⢧⡫⡮⡣⡢⡯⡺⣢⡀⠀⠀
-⠈⠀⠄⠀⠥⡑⢌⠐⡮⣳⢕⡄⢕⠅⠀⠐⠀⠁⠀⠀⠀⡀⠄⢐⢁⠳⠈⡎⣪⢧⡫⣞⢜⣎⢧⡣⡓⠁⠀⠀
-⠄⠐⢀⠕⡑⢌⢐⠰⣝⢮⢇⡇⢕⠅⠠⠀⠀⠂⡀⢀⠁⠀⠀⡀⠠⠀⣐⢜⣕⢗⡽⣸⣺⡪⣗⢯⠢⠀⠀⠀
-⠡⠈⠄⠂⡐⠰⠈⡼⡵⡝⡧⡇⠨⡂⡂⠀⠐⠀⠀⠀⠀⠂⠀⠀⡀⡱⡕⡷⡕⡏⡊⡪⢊⠊⠊⠁⠀⠀⠀⠀
-⢈⠀⡂⠅⠀⡁⡔⣯⢺⢝⣎⢗⠡⢑⢀⠢⢀⠂⠈⠀⠐⠀⣀⡡⣢⡫⡎⣇⣟⡎⢌⠂⢑⠐⠀⠄⠁⠀⠀⠀
-⠂⡂⡠⢠⣲⣞⢧⣣⢇⡟⣎⢂⢂⢂⠂⡂⠂⠆⢖⢮⢪⡳⡕⣝⡼⣮⡺⣜⢮⣗⢔⠡⠡⢂⢁⠈⢀⠐⠀⠀
-⡀⡂⢊⢲⣳⢯⣟⡮⡯⣊⢐⠜⡐⢅⠂⠄⢅⢑⢱⢕⣇⣃⣯⣳⢽⣳⢝⢮⡳⡯⠂⠑⡑⢅⡂⠑⠠⠂⠄⠈
-⠂⠀⡐⡽⣞⣟⣾⢽⡽⡒⣕⡕⠾⡎⡆⡱⠰⠁⠀⡧⣗⣟⡮⣯⣻⡺⡀⠑⠽⡈⠀⠀⠌⠰⠘⠌⠀⠄⠑⢀
-⢀⠰⣜⣯⣟⡾⣽⢋⢪⢜⣆⣯⣞⢌⠪⡈⠀⠠⠀⢳⢯⡷⣽⡺⡺⠈⠄⠀⠀⠁⠂⠀⠀⠀⠁⠁⠂⠄⠀⠀
-⡀⣮⣻⣞⡾⣝⡦⣺⣞⣷⡳⣗⢽⣆⠂⠀⠄⠠⠐⠸⣹⡽⡵⣗⠠⠈⡀⠀⠠⠀⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⢜⣗⣗⡯⠋⢀⢟⡗⣗⣵⠟⠍⠙⠘⡢⠁⢀⠀⠀⢀⢳⢟⣯⣧⡀⠂⢀⠐⠀⠀⠄⠠⢁⠢⠐⠀⠀⠀⠀⠀
-";
+
+
+  let ascii = cli::load_ascii();
 
   if cli::use_ascii() && !(ascii.lines().count() < 1) {
     let mut ascii_lines = ascii.lines();
@@ -276,8 +259,6 @@ async fn main() {
       println!("{}", line);
     }
   }
-  //format_statuses(response_data.data.user.statistics.manga.statuses);
-  //format_statuses(response_data.data.user.statistics.anime.statuses);
 }
 
 fn format_statuses(mut statuses: Vec<Statuses>) -> String {
