@@ -8,9 +8,14 @@ anifetch is like {neo,fast,p,uwu,one}fetch but for printing out user stats from 
 
 * Building
 ** Nix/NixOS
-If your system has ~nix~ you the repository is a flake you can build it with:
+If your system has ~nix~, the repository is a flake so you can build it with:
 #+begin_src shell
 nix build
+#+end_src
+
+or just build it directly without manually cloning the repo:
+#+begin_src shell
+nix build github:Moskas/anifetch
 #+end_src
 
 ** Linux/Windows/macOS

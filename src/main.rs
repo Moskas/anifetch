@@ -174,16 +174,13 @@ async fn main() {
     "Anime stats".to_string().bold(),
     response_data.data.user.statistics.anime.count.to_string()[..].magenta()
   );
+  let detailed_watchtime =
+    convert_minutes_to_days_hours_minutes(response_data.data.user.statistics.anime.minutes_watched);
   let minutes_watched = format!(
-    "- Minutes watched: {}",
-    response_data
-      .data
-      .user
-      .statistics
-      .anime
-      .minutes_watched
-      .to_string()
-      .yellow()
+    "- Watchtime: {} days, {} hours, {} minutes",
+    detailed_watchtime.0.to_string().bold(),
+    detailed_watchtime.1.to_string().bold(),
+    detailed_watchtime.2.to_string().bold()
   );
   let episodes_watched = format!(
     "- Episodes watched: {}",
@@ -197,7 +194,7 @@ async fn main() {
       .yellow()
   );
   let manga_statuses = format_statuses(response_data.data.user.statistics.manga.statuses);
-  let _manga_genres = format!(
+  let manga_genres = format!(
     "- Top 5 genres: {}",
     response_data
       .data
@@ -212,7 +209,7 @@ async fn main() {
       .yellow()
   );
   let anime_statuses = format_statuses(response_data.data.user.statistics.anime.statuses);
-  let _anime_genres = format!(
+  let anime_genres = format!(
     "- Top 5 genres: {}",
     response_data
       .data
@@ -231,12 +228,12 @@ async fn main() {
     &manga_stats,
     &chapters_read,
     &volumes_read,
-    //&manga_genres,
+    &manga_genres,
     &manga_statuses,
     &anime_stats,
     &episodes_watched,
     &minutes_watched,
-    //&anime_genres,
+    &anime_genres,
     &anime_statuses,
   ];
   let ascii = "⠀⠀⠠⢽⣝⣗⡽⡽⣝⢮⣪⣫⠀⠀⡠⡳⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -284,6 +281,8 @@ async fn main() {
 }
 
 fn format_statuses(mut statuses: Vec<Statuses>) -> String {
+  // For whatever reason anilist api returns differently ordered statuses for manga and anime
+  // so for more coherent output we need to reorder elements to keep them inline
   statuses.sort_by(|a, b| a.status.cmp(&b.status));
   let mut formatted_statuses = vec![];
   for status in statuses {
@@ -311,7 +310,7 @@ fn format_statuses(mut statuses: Vec<Statuses>) -> String {
       "REPEATING" => formatted_statuses.push(format!(
         "{} {}",
         titlecase(status.status),
-        status.count.to_string()[..].purple()
+        status.count.to_string()[..].cyan()
       )),
       "DROPPED" => formatted_statuses.push(format!(
         "{} {}",
@@ -330,4 +329,10 @@ fn titlecase(word: String) -> String {
     word[0..1].to_uppercase(),
     word[1..].to_ascii_lowercase().to_string()
   )
+}
+
+fn convert_minutes_to_days_hours_minutes(minutes: u32) -> (u32, u32, u32) {
+  let hours = minutes / 60;
+  let days = hours / 24;
+  (days, hours, minutes)
 }
