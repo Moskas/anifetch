@@ -226,7 +226,7 @@ async fn main() {
       .join(", ")
       .yellow()
   );
-  let right = vec![
+  let stats = vec![
     &user,
     &manga_stats,
     &chapters_read,
@@ -261,9 +261,9 @@ async fn main() {
 ⢜⣗⣗⡯⠋⢀⢟⡗⣗⣵⠟⠍⠙⠘⡢⠁⢀⠀⠀⢀⢳⢟⣯⣧⡀⠂⢀⠐⠀⠀⠄⠠⢁⠢⠐⠀⠀⠀⠀⠀
 ";
 
-  if cli::use_ascii() {
+  if cli::use_ascii() && !(ascii.lines().count() < 1) {
     let mut ascii_lines = ascii.lines();
-    let mut right_iter = right.iter();
+    let mut right_iter = stats.iter();
 
     // Print paired lines from both iterators
     for (ascii_line, text_line) in ascii_lines.by_ref().zip(right_iter.by_ref()) {
@@ -275,7 +275,7 @@ async fn main() {
       println!("{}", ascii_line);
     }
   } else {
-    for line in right {
+    for line in stats {
       println!("{}", line);
     }
   }
@@ -325,10 +325,9 @@ fn format_statuses(mut statuses: Vec<Statuses>) -> String {
 }
 
 fn titlecase(word: String) -> String {
-  let modified_word = format!(
+  format!(
     "{}{}",
     word[0..1].to_uppercase(),
     word[1..].to_ascii_lowercase().to_string()
-  );
-  modified_word
+  )
 }

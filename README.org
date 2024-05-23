@@ -1,0 +1,22 @@
+#+title: anifetch
+#+author: Moskas
+#+options: \n:t
+
+anifetch is like {neo,fast,p,uwu,one}fetch but for printing out user stats from [[https://anilist.co][anilist.co]].
+
+[[./.github/preview.png]]
+
+* Building
+** Nix/NixOS
+If your system has ~nix~ you the repository is a flake you can build it with:
+#+begin_src shell
+nix build
+#+end_src
+
+** Linux/Windows/macOS
+On systems without ~nix~ you need to have installed Rust and Openssl. Then you can build the application with:
+#+begin_src shell
+cargo build --release
+#+end_src
+
+The application was tested with Rust 1.77.2.
