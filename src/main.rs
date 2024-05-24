@@ -196,35 +196,38 @@ async fn main() {
   let manga_statuses = format_statuses(response_data.data.user.statistics.manga.statuses);
   let manga_genres = format!(
     "- Top 5 genres: {}",
-    response_data
-      .data
-      .user
-      .statistics
-      .manga
-      .genres
-      .iter()
-      .map(|x| x.genre.to_string())
-      .collect::<Vec<String>>()[0..5]
-      .join(", ")
-      .yellow()
+    get_top_5(
+      response_data
+        .data
+        .user
+        .statistics
+        .manga
+        .genres
+        .iter()
+        .map(|x| x.genre.to_string())
+        .collect::<Vec<String>>()
+    )
+    .yellow()
   );
   let anime_statuses = format_statuses(response_data.data.user.statistics.anime.statuses);
   let anime_genres = format!(
     "- Top 5 genres: {}",
-    response_data
-      .data
-      .user
-      .statistics
-      .anime
-      .genres
-      .iter()
-      .map(|x| x.genre.to_string())
-      .collect::<Vec<String>>()[0..5]
-      .join(", ")
-      .yellow()
+    get_top_5(
+      response_data
+        .data
+        .user
+        .statistics
+        .anime
+        .genres
+        .iter()
+        .map(|x| x.genre.to_string())
+        .collect::<Vec<String>>()
+    )
+    .yellow()
   );
 
   let stats = vec![
+    "", // Added as a padding
     &user,
     &manga_stats,
     &chapters_read,
@@ -238,21 +241,30 @@ async fn main() {
     &anime_statuses,
   ];
 
-
   let ascii = cli::load_ascii();
 
   if cli::use_ascii() && !(ascii.lines().count() < 1) {
     let mut ascii_lines = ascii.lines();
+    let ascii_max_line_len = ascii.lines().max().unwrap().len();
     let mut right_iter = stats.iter();
 
     // Print paired lines from both iterators
     for (ascii_line, text_line) in ascii_lines.by_ref().zip(right_iter.by_ref()) {
-      println!("{} {}", ascii_line, text_line);
+      println!(
+        "{}{} {}",
+        ascii_line,
+        " ".repeat(ascii_line.len().abs_diff(ascii_max_line_len)),
+        text_line
+      );
     }
 
     // Print remaining ascii lines if any
     for ascii_line in ascii_lines {
       println!("{}", ascii_line);
+    }
+    // Print remaining ascii lines if any
+    for text_line in right_iter {
+      println!("{} {}", " ".repeat(ascii_max_line_len), text_line);
     }
   } else {
     for line in stats {
@@ -301,7 +313,11 @@ fn format_statuses(mut statuses: Vec<Statuses>) -> String {
       _ => formatted_statuses.push(titlecase(status.status).into()),
     }
   }
-  format!("- {}", formatted_statuses.join(", "))
+  if formatted_statuses.len() > 0 {
+    format!("- Statuses: {}", formatted_statuses.join(", "))
+  } else {
+    format!("- Statuses: {}", "Not enough data".yellow())
+  }
 }
 
 fn titlecase(word: String) -> String {
@@ -316,4 +332,14 @@ fn convert_minutes_to_days_hours_minutes(minutes: u32) -> (u32, u32, u32) {
   let hours = minutes / 60;
   let days = hours / 24;
   (days, hours, minutes)
+}
+
+fn get_top_5(list: Vec<String>) -> String {
+  if list.len() == 0 {
+    String::from("Not enough data")
+  } else if list.len() < 5 {
+    list.join(", ")
+  } else {
+    return list[0..5].join(", ");
+  }
 }

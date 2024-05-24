@@ -6,7 +6,7 @@ use clap_derive::Parser;
 struct Args {
   /// Anilist username that you want to look up
   #[arg(short, long)]
-  name: String,
+  username: String,
   /// Disable ascii print
   #[arg(short, long, default_value_t = true, action = clap::ArgAction::SetFalse)]
   disable_ascii: bool,
@@ -17,7 +17,7 @@ struct Args {
 
 pub fn get_name() -> String {
   let args = Args::parse();
-  args.name
+  args.username
 }
 
 pub fn use_ascii() -> bool {
