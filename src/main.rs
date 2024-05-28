@@ -141,7 +141,11 @@ async fn main() {
   }
 
   //println!("{:#?}", response_data.data);
-  let user = format!("{}@anilist.co", response_data.data.user.name.blue());
+  let user = format!(
+    "{}@ani{}.co",
+    response_data.data.user.name.bold(),
+    "list".blue()
+  );
   let manga_stats = format!(
     "{}: {}",
     "Manga stats".to_string().bold(),

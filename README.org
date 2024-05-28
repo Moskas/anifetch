@@ -6,6 +6,19 @@ anifetch is like {neo,fast,p,uwu,one}fetch but for printing out user stats from 
 
 [[./.github/preview.png]]
 
+* Usage
+#+begin_src shell
+$ anifetch -h
+Usage: anifetch [OPTIONS] --username <USERNAME>
+
+Options:
+  -u, --username <USERNAME>               Anilist username that you want to look up
+  -d, --disable-ascii                     Disable ascii print
+  -c, --custom-ascii <CUSTOM_ASCII_PATH>  Load custom ascii from specified file
+  -h, --help                              Print help
+  -V, --version                           Print version
+#+end_src
+
 * Building
 ** Nix/NixOS
 If your system has ~nix~, the repository is a flake so you can build it with:

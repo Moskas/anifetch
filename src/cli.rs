@@ -54,7 +54,10 @@ pub fn load_ascii() -> String {
   } else {
     match std::fs::read_to_string(args.custom_ascii.unwrap()) {
       Ok(content) => content,
-      _ => default_ascii,
+      _ => {
+        println!("Could not find the specified file, falling back to default ascii art");
+        default_ascii
+      }
     }
   }
 }
