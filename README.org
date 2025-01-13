@@ -36,5 +36,3 @@ On systems without ~nix~ you need to have installed Rust and Openssl. Then you c
 #+begin_src shell
 cargo build --release
 #+end_src
-
-The application was tested with Rust 1.77.2.
