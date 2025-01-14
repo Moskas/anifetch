@@ -7,6 +7,9 @@ struct Args {
   /// Anilist username that you want to look up
   #[arg(short, long)]
   username: String,
+  /// Which media should be displayed: All, Anime, Manga
+  #[arg(short, long, default_value = "All")]
+  media: String,
   /// Disable ascii print
   #[arg(short, long, default_value_t = true, action = clap::ArgAction::SetFalse)]
   disable_ascii: bool,
@@ -16,17 +19,18 @@ struct Args {
 }
 
 pub fn get_name() -> String {
-  let args = Args::parse();
-  args.username
+  Args::parse().username
+}
+
+pub fn get_media() -> String {
+  Args::parse().media
 }
 
 pub fn use_ascii() -> bool {
-  let args = Args::parse();
-  args.disable_ascii
+  Args::parse().disable_ascii
 }
 
 pub fn load_ascii() -> String {
-  let args = Args::parse();
   let default_ascii = "⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻⣟⣿⣻
 ⣯⣿⡽⣷⢿⣽⢷⡿⣽⡷⣿⡽⣷⢿⣽⢷⡿⣽⢷⡿⣽⢷⡿⣽⡷⣿⡽⣷⢿⣽⢷⡿⣽⡷⣿⡽⣷⢿⣽⣯
 ⣽⣾⣻⣟⣯⡿⣯⡿⣯⡿⣯⣿⣻⣯⡿⣯⣿⣻⣟⣿⣻⣟⡿⣯⡿⣯⣿⣻⣯⡿⣯⡿⣯⡿⣯⣿⣻⣯⣷⢿
@@ -49,10 +53,10 @@ pub fn load_ascii() -> String {
 ⣟⣿⢷⣿⣻⣷⣻⣽⣟⣿⣽⢷⡿⣾⣟⣯⣷⢿⣻⣟⣿⣳⣿⣽⣟⣿⢾⣯⡿⣽⣷⣻⣽⣯⣿⣽⢿⣽⣟⡿"
     .to_string();
 
-  if args.custom_ascii.is_none() {
+  if Args::parse().custom_ascii.is_none() {
     default_ascii
   } else {
-    match std::fs::read_to_string(args.custom_ascii.unwrap()) {
+    match std::fs::read_to_string(Args::parse().custom_ascii.unwrap()) {
       Ok(content) => content,
       _ => {
         println!("Could not find the specified file, falling back to default ascii art");

@@ -229,21 +229,40 @@ async fn main() {
     )
     .yellow()
   );
-
-  let stats = vec![
-    "", // Added as a padding
-    &user,
-    &manga_stats,
-    &chapters_read,
-    &volumes_read,
-    &manga_genres,
-    &manga_statuses,
-    &anime_stats,
-    &episodes_watched,
-    &minutes_watched,
-    &anime_genres,
-    &anime_statuses,
-  ];
+  let stats = match cli::get_media().as_str() {
+    "Manga" => vec![
+      "", // Added as a padding
+      &user,
+      &manga_stats,
+      &chapters_read,
+      &volumes_read,
+      &manga_genres,
+      &manga_statuses,
+    ],
+    "Anime" => vec![
+      "", // Added as a padding
+      &user,
+      &anime_stats,
+      &episodes_watched,
+      &minutes_watched,
+      &anime_genres,
+      &anime_statuses,
+    ],
+    _ => vec![
+      "", // Added as a padding
+      &user,
+      &manga_stats,
+      &chapters_read,
+      &volumes_read,
+      &manga_genres,
+      &manga_statuses,
+      &anime_stats,
+      &episodes_watched,
+      &minutes_watched,
+      &anime_genres,
+      &anime_statuses,
+    ],
+  };
 
   let ascii = cli::load_ascii();
 
@@ -335,7 +354,7 @@ fn titlecase(word: String) -> String {
 fn convert_minutes_to_days_hours_minutes(minutes: u32) -> (u32, u32, u32) {
   let hours = minutes / 60;
   let days = hours / 24;
-  (days, hours, minutes)
+  (days, hours % 24, minutes % 60)
 }
 
 fn get_top_5(list: Vec<String>) -> String {
